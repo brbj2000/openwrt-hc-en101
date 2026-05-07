@@ -5,12 +5,15 @@ Subject: [PATCH] arm64: dts: add device tree for Huaichen Telecom HC-EN101
 Add device tree support for Huaichen Telecom HC-EN101 (TE1104H0)
 router based on NXP LS1012A SoC.
 
-This DTS is based on the LS1012A-RDB reference design and may need
-adjustments based on actual hardware differences:
-- PHY chip model and MDIO addresses
-- Flash size and partition layout
-- LED and button GPIO mappings
-- Wireless module (if present)
+Boot flow:
+- QSPI NOR: RCW + U-Boot (bootloader only, not modified by OpenWrt)
+- eMMC: kernel (fitImage on p1 ext4) + rootfs (squashfs on p2)
+
+Hardware:
+- RAM: ~990MB DDR @ 0x80000000
+- 2x PFE Ethernet with RealTek RTL8211F PHY (RGMII)
+- eMMC boot storage (DG400 7.3GiB)
+- QSPI NOR: Macronix MX25U12835F 16MB (bootloader only)
 
 Signed-off-by: OpenWrt HC-EN101 Build <build@local>
 ---
