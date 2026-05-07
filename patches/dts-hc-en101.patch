@@ -1,0 +1,33 @@
+From: OpenWrt HC-EN101 Build <build@local>
+Date: Thu, 7 May 2026 00:00:00 +0800
+Subject: [PATCH] arm64: dts: add device tree for Huaichen Telecom HC-EN101
+
+Add device tree support for Huaichen Telecom HC-EN101 (TE1104H0)
+router based on NXP LS1012A SoC.
+
+This DTS is based on the LS1012A-RDB reference design and may need
+adjustments based on actual hardware differences:
+- PHY chip model and MDIO addresses
+- Flash size and partition layout
+- LED and button GPIO mappings
+- Wireless module (if present)
+
+Signed-off-by: OpenWrt HC-EN101 Build <build@local>
+---
+ arch/arm64/boot/dts/freescale/Makefile            |  1 +
+ .../boot/dts/freescale/fsl-ls1012a-hc-en101.dts   |  1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/freescale/fsl-ls1012a-hc-en101.dts
+
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -6,6 +6,7 @@
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frdm.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frwy.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-qds.dtb
++dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-hc-en101.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-rdb.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-qds.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-rdb.dtb
+-- 
+2.43.0

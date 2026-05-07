@@ -1,0 +1,206 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Device Tree file for Huaichen Telecom HC-EN101 (TE1104H0)
+ * Based on NXP LS1012A SoC
+ *
+ * Initial version - based on LS1012A-RDB reference design.
+ * May need adjustments based on actual hardware:
+ *   - PHY chip model and addresses
+ *   - Flash size and partition layout
+ *   - LED and button GPIO mappings
+ *   - Wireless module (if present)
+ *
+ * Please check U-Boot serial log (printenv, md commands) to verify.
+ */
+
+/dts-v1/;
+
+#include "fsl-ls1012a.dtsi"
+
+/ {
+	model = "Huaichen Telecom HC-EN101";
+	compatible = "hctele,hc-en101", "fsl,ls1012a";
+
+	aliases {
+		ethernet0 = &pfe_mac0;
+		ethernet1 = &pfe_mac1;
+	};
+
+	chosen {
+		stdout-path = &duart0;
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		/* Default 512MB DDR - adjust based on actual hardware */
+		reg = <0x0 0x80000000 0x0 0x20000000>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		/*
+		 * TODO: Adjust GPIO numbers based on actual hardware.
+		 * Use 'gpio find' in U-Boot or check schematic.
+		 * Common LS1012A GPIO base: gpio0 = GPIO0, gpio1 = GPIO1, etc.
+		 */
+		led-power {
+			label = "hc-en101:green:power";
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		led-wan {
+			label = "hc-en101:green:wan";
+			gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
+		};
+
+		led-lan {
+			label = "hc-en101:green:lan";
+			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	gpio-keys-polled {
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
+
+		/*
+		 * TODO: Adjust reset button GPIO.
+		 * Check U-Boot: 'gpio input' or schematic.
+		 */
+		reset {
+			label = "reset";
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+};
+
+&duart0 {
+	status = "okay";
+};
+
+&i2c0 {
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+};
+
+&qspi {
+	status = "okay";
+
+	/*
+	 * QSPI flash - adjust based on actual flash chip.
+	 * Common: mx25l25635f (32MB), mx25u25635f (32MB),
+	 *         mt25qu256aba (32MB), s25fs512s (64MB)
+	 *
+	 * Check U-Boot: 'sf probe' output
+	 */
+	flash0: flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+		m25p,fast-read;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/*
+			 * Partition layout - based on LS1012A-RDB style.
+			 * Adjust based on your U-Boot 'mtdparts' env variable
+			 * or 'sf probe && mtd' commands.
+			 *
+			 * Total flash size assumed: 32MB (0x2000000)
+			 * If your flash is different size, adjust all partitions.
+			 */
+			partition@0 {
+				label = "bl2";
+				reg = <0x00000000 0x00100000>; /* 1MB: BL2/PBL */
+				read-only;
+			};
+
+			partition@100000 {
+				label = "fip";
+				reg = <0x00100000 0x00400000>; /* 4MB: FIP (U-Boot) */
+				read-only;
+			};
+
+			partition@500000 {
+				label = "uboot-env";
+				reg = <0x00500000 0x00500000>; /* 5MB: U-Boot env */
+			};
+
+			partition@a00000 {
+				label = "pfe";
+				reg = <0x00a00000 0x00600000>; /* 6MB: PFE firmware */
+				read-only;
+			};
+
+			partition@1000000 {
+				label = "dtb";
+				reg = <0x01000000 0x01000000>; /* 1MB: Device Tree */
+			};
+
+			partition@1100000 {
+				label = "kernel";
+				reg = <0x01100000 0x02000000>; /* 32MB: Kernel */
+			};
+
+			/* Rootfs uses remaining space */
+			partition@3100000 {
+				label = "rootfs";
+				reg = <0x03100000 0x1cf00000>; /* ~461MB - only if 512MB flash */
+			};
+		};
+	};
+};
+
+&pfe {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pfe_mac0: ethernet@0 {
+		compatible = "fsl,pfe-gemac-port";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x0>;
+		phy-handle = <&gemac0_phy>;
+		phy-mode = "sgmii";
+		/*
+		 * TODO: Verify PHY address and mode.
+		 * Check U-Boot: 'mdio list' and 'mii info'
+		 * Common modes: sgmii, rgmii-id, rgmii-txid
+		 */
+	};
+
+	pfe_mac1: ethernet@1 {
+		compatible = "fsl,pfe-gemac-port";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x1>;
+		phy-handle = <&gemac1_phy>;
+		phy-mode = "sgmii";
+	};
+
+	mdio@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		gemac0_phy: ethernet-phy@1 {
+			reg = <0x1>;
+			/* TODO: Verify PHY model. Common: AQR105, VSC8211, RTL8211F */
+		};
+
+		gemac1_phy: ethernet-phy@2 {
+			reg = <0x2>;
+		};
+	};
+};
+
+#include "fsl-ls1012a-qds-13bb.dtsi"
